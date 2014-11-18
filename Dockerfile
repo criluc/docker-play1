@@ -1,4 +1,4 @@
-FROM dockerfile/java:openjdk-7-jdk
+FROM dockerfile/java:openjdk-7-jre
 
 MAINTAINER Cristian Lucchesi <cristian.lucchesi@gmail.com>
 
@@ -12,12 +12,11 @@ WORKDIR $HOME
 
 USER play
 
-RUN git clone -b 1.3.x https://github.com/playframework/play1.git --depth 1 && cd play1 && \
-    rm -rf {samples-and-tests,documentation,.git} && \
-    cd framework && ant && rm -rf classes
+RUN wget -q http://downloads.typesafe.com/play/1.2.7/play-1.2.7.zip && \
+    unzip -q play-1.2.7.zip && rm play-1.2.7.zip
 
 USER root
-RUN ln -sf /opt/play/play1/play /usr/local/bin
+RUN ln -sf $HOME/play-1.2.7/play /usr/local/bin
 USER play
 
 EXPOSE 9000
