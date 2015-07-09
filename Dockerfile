@@ -18,6 +18,7 @@ RUN chmod +x play1-1.3.0/play
 
 USER root
 RUN ln -sf $HOME/play1-1.3.0/play /usr/local/bin
+COPY play-1.3.0.jar $HOME/play1-1.3.0/framework/
 USER play
 
 EXPOSE 9000
