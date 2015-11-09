@@ -1,4 +1,4 @@
-FROM java:openjdk-7-jre
+FROM java:openjdk-8-jre
 
 MAINTAINER Cristian Lucchesi <cristian.lucchesi@gmail.com>
 
@@ -12,11 +12,12 @@ WORKDIR $HOME
 
 USER play
 
-RUN wget -q https://github.com/playframework/play1/releases/download/1.3.2/play-1.3.2.zip && \
-    unzip -q play-1.3.2.zip && rm play-1.3.2.zip && chmod +x play-1.3.2/play
+RUN wget -q https://github.com/playframework/play1/releases/download/1.4.0/play-1.4.0.zip && \
+    unzip -q play-1.4.0.zip && rm play-1.4.0.zip && cd play-1.4.0 && \
+    tr -d '\r' <play>play-unix && chmod +x play-unix && mv play play-dos && ln -sf play-unix play
 
 USER root
-RUN ln -sf $HOME/play-1.3.2/play /usr/local/bin
+RUN ln -sf $HOME/play-1.4.0/play /usr/local/bin
 USER play
 
 EXPOSE 9000
