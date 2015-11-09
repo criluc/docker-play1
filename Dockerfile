@@ -12,12 +12,11 @@ WORKDIR $HOME
 
 USER play
 
-RUN wget -q http://downloads.typesafe.com/play/1.3.0/play-1.3.0.zip && \
-    unzip -q play-1.3.0.zip && rm play-1.3.0.zip
-RUN chmod +x play1-1.3.0/play
+RUN wget -q http://downloads.typesafe.com/play/1.3.1/play-1.3.1.zip && \
+    unzip -q play-1.3.1.zip && rm play-1.3.1.zip && chmod +x play-1.3.1/play
 
 USER root
-RUN ln -sf $HOME/play1-1.3.0/play /usr/local/bin
+RUN ln -sf $HOME/play-1.3.1/play /usr/local/bin
 USER play
 
 EXPOSE 9000
