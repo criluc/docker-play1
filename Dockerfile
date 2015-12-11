@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y sudo ant python && apt-get clean
 ENV HOME /opt/play
 RUN groupadd -r play -g 1000 && \
     useradd -u 1000 -r -g play -m -d $HOME -s /sbin/nologin -c "Play user" play
-    
+
 WORKDIR $HOME
 
 USER play
@@ -18,6 +18,7 @@ RUN wget -q https://github.com/playframework/play1/releases/download/1.4.0/play-
 
 USER root
 RUN ln -sf $HOME/play-1.4.0/play /usr/local/bin
+COPY play-1.4.0.jar $HOME/play-1.4.0/framework/
 USER play
 
 EXPOSE 9000
