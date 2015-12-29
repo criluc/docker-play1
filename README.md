@@ -1,3 +1,5 @@
+[![](https://badge.imagelayers.io/criluc/play1:latest.svg)](https://imagelayers.io/?images=criluc/play1:latest 'Get your own badge on imagelayers.io')
+
 docker-play1
 ============
 
