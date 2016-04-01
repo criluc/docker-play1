@@ -19,5 +19,6 @@ RUN wget -q https://downloads.typesafe.com/play/${PLAY_VERSION}/play-${PLAY_VERS
 USER root
 RUN ln -sf $HOME/play-${PLAY_VERSION}/play /usr/local/bin
 USER play
+COPY play-1.4.2.jar $HOME/play-${PLAY_VERSION}/framework/
 
 EXPOSE 9000
