@@ -8,6 +8,11 @@ Docker for Play 1
   - play 1.4.{0,1} version based on official openjdk-8.
 
 
+Play 1.4.2 ready to go
+-----------------------
+
+$ docker run --it --rm criluc/play1:1.4.2 bash
+
 Play 1.4.1 ready to go
 -----------------------
 
