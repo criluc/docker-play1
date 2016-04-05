@@ -20,5 +20,6 @@ USER root
 RUN ln -sf $HOME/play-${PLAY_VERSION}/play /usr/local/bin
 USER play
 COPY play-1.4.2.jar $HOME/play-${PLAY_VERSION}/framework/
+RUN sed 's#www.playframework.com#'"playframework.com"'#' -i $HOME/play-${PLAY_VERSION}/framework/dependencies.yml
 
 EXPOSE 9000
