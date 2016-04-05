@@ -16,6 +16,8 @@ USER play
 RUN wget -q https://downloads.typesafe.com/play/${PLAY_VERSION}/play-${PLAY_VERSION}.zip && \
     unzip -q play-${PLAY_VERSION}.zip && rm play-${PLAY_VERSION}.zip && cd play-${PLAY_VERSION}
 
+RUN sed 's#www.playframework.com#'"playframework.com"'#' -i $HOME/play-${PLAY_VERSION}/framework/dependencies.yml
+
 USER root
 RUN ln -sf $HOME/play-${PLAY_VERSION}/play /usr/local/bin
 USER play
