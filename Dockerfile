@@ -19,6 +19,7 @@ RUN wget -q https://github.com/playframework/play1/releases/download/1.4.0/play-
 USER root
 RUN ln -sf $HOME/play-1.4.0/play /usr/local/bin
 COPY play-1.4.0.jar $HOME/play-1.4.0/framework/
+RUN sed 's#www.playframework.com#'"playframework.com"'#' -i $HOME/play-${PLAY_VERSION}/framework/dependencies.yml
 USER play
 
 EXPOSE 9000
