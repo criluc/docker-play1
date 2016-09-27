@@ -1,11 +1,11 @@
-FROM java:openjdk-8-jre
+FROM openjdk:8-jre
 
 MAINTAINER Cristian Lucchesi <cristian.lucchesi@gmail.com>
 
 RUN apt-get update && apt-get install -y sudo ant python && apt-get clean
 
 ENV HOME /opt/play
-ENV PLAY_VERSION 1.4.2
+ENV PLAY_VERSION 1.4.3
 RUN groupadd -r play -g 1000 && \
     useradd -u 1000 -r -g play -m -d $HOME -s /sbin/nologin -c "Play user" play
 
@@ -19,7 +19,6 @@ RUN wget -q https://downloads.typesafe.com/play/${PLAY_VERSION}/play-${PLAY_VERS
 USER root
 RUN ln -sf $HOME/play-${PLAY_VERSION}/play /usr/local/bin
 USER play
-COPY play-1.4.2.jar $HOME/play-${PLAY_VERSION}/framework/
-RUN sed 's#www.playframework.com#'"playframework.com"'#' -i $HOME/play-${PLAY_VERSION}/framework/dependencies.yml
+COPY play-${PLAY_VERSION}.jar $HOME/play-${PLAY_VERSION}/framework/
 
 EXPOSE 9000
