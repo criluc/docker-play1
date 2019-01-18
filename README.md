@@ -15,6 +15,11 @@ Play 1.5.2 ready to go
 
 $ docker run -it --rm criluc/play1:1.5.2 bash
 
+Play 1.5.2 using openjdk 11
+---------------------------
+
+$ docker run -it --rm criluc/play1:1.5.2-openjdk-11 bash
+
 Play 1.5.1 ready to go
 -----------------------
 
