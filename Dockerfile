@@ -1,4 +1,4 @@
-FROM openjdk:8-jre
+FROM openjdk:11-jre
 
 MAINTAINER Cristian Lucchesi <cristian.lucchesi@gmail.com>
 
