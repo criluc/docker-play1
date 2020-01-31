@@ -1,4 +1,4 @@
-FROM java:openjdk-8-jre
+FROM openjdk:8-jre
 
 MAINTAINER Cristian Lucchesi <cristian.lucchesi@gmail.com>
 
@@ -20,8 +20,6 @@ RUN wget -q https://github.com/playframework/play1/releases/download/1.4.0/play-
 
 USER root
 RUN ln -sf $HOME/play-${PLAY_VERSION}/play /usr/local/bin
-COPY play-${PLAY_VERSION}.jar $HOME/play-${PLAY_VERSION}/framework/
-RUN sed 's#www.playframework.com#'"playframework.com"'#' -i $HOME/play-${PLAY_VERSION}/framework/dependencies.yml
 USER play
 
 EXPOSE 9000
