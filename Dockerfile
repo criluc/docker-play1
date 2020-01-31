@@ -5,7 +5,7 @@ MAINTAINER Cristian Lucchesi <cristian.lucchesi@gmail.com>
 RUN apt-get update && apt-get install -y sudo ant python && apt-get clean
 
 ENV HOME /opt/play
-ENV PLAY_VERSION=1.4.1
+ENV PLAY_VERSION=1.4.2
 
 RUN groupadd -r play -g 1000 && \
     useradd -u 1000 -r -g play -m -d $HOME -s /sbin/nologin -c "Play user" play
