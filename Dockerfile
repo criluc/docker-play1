@@ -1,4 +1,4 @@
-FROM openjdk:8-jre
+FROM openjdk:11-jre
 
 MAINTAINER Cristian Lucchesi <cristian.lucchesi@gmail.com>
 
@@ -19,5 +19,6 @@ RUN wget -q https://downloads.typesafe.com/play/${PLAY_VERSION}/play-${PLAY_VERS
 USER root
 RUN ln -sf $HOME/play-${PLAY_VERSION}/play /usr/local/bin
 USER play
+COPY play-${PLAY_VERSION}.jar $HOME/play-${PLAY_VERSION}/framework/
 
 EXPOSE 9000
