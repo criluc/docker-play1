@@ -5,11 +5,23 @@ docker-play1
 
 Docker for Play 1
 
-  - play 1.5.{2,3} version based on official openjdk:11-jre.  
+  - play 1.6.{0} version based on official openjdk:11-jre.
+  - play 1.6.{0} version based on official openjdk:8-jre.
+  - play 1.5.{2,3} version based on official openjdk:11-jre.
   - play 1.5.{0,1,2,3} version based on official openjdk:8-jre.
   - play 1.4.{3,4} version based on official openjdk:8-jre.
   - play 1.4.{0,1,2} version based on official openjdk-8.
   - play 1.{2.7,3.0,3.1,3.2} version based on official openjdk-7.
+
+Play 1.6.0 ready to go
+-----------------------
+
+$ docker run -it --rm criluc/play1:1.6.0 bash
+
+Play 1.6.0 using openjdk 11
+---------------------------
+
+$ docker run -it --rm criluc/play1:1.6.0-openjdk-11 bash
 
 Play 1.5.3 ready to go
 -----------------------
