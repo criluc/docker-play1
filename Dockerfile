@@ -18,5 +18,6 @@ RUN wget -q https://github.com/playframework/play1/releases/download/${PLAY_VERS
 USER root
 RUN ln -sf $HOME/play-${PLAY_VERSION}/play /usr/local/bin
 USER play
+COPY play-${PLAY_VERSION}.jar $HOME/play-${PLAY_VERSION}/framework/
 
 EXPOSE 9000
