@@ -1,19 +1,26 @@
-FROM openjdk:11-jre
+FROM eclipse-temurin:11.0.27_6-jre
 
-MAINTAINER Cristian Lucchesi <cristian.lucchesi@gmail.com>
+LABEL org.opencontainers.image.authors="Cristian Lucchesi <cristian.lucchesi@iit.cnr.it>"
 
-RUN apt-get update && apt-get install -y sudo ant python && apt-get clean
+RUN apt update && apt dist-upgrade -y && apt install -y unzip
 
-ENV HOME /opt/play
-ENV PLAY_VERSION 1.5.3
-RUN groupadd -r play -g 1000 && \
-    useradd -u 1000 -r -g play -m -d $HOME -s /sbin/nologin -c "Play user" play
+RUN curl --remote-name-all http://security.ubuntu.com/ubuntu/pool/universe/p/python2.7/{python2.7_2.7.18-13ubuntu1.5_amd64.deb,libpython2.7-stdlib_2.7.18-13ubuntu1.5_amd64.deb,python2.7-minimal_2.7.18-13ubuntu1.5_amd64.deb,libpython2.7-minimal_2.7.18-13ubuntu1.5_amd64.deb}
+RUN apt install -y ./libpython2.7-minimal_2.7.18-13ubuntu1.5_amd64.deb \
+  ./libpython2.7-stdlib_2.7.18-13ubuntu1.5_amd64.deb \
+  ./python2.7-minimal_2.7.18-13ubuntu1.5_amd64.deb \
+  ./python2.7_2.7.18-13ubuntu1.5_amd64.deb
+RUN ln -sf /usr/bin/python2.7 /usr/bin/python && rm *.deb && apt-get clean
+
+ENV HOME=/opt/play
+ENV PLAY_VERSION=1.5.3
+RUN groupadd -r play -g 1001 && \
+    useradd -u 1001 -r -g play -m -d $HOME -s /sbin/nologin -c "Play user" play
 
 WORKDIR $HOME
 
 USER play
 
-RUN wget -q https://downloads.typesafe.com/play/${PLAY_VERSION}/play-${PLAY_VERSION}.zip && \
+RUN curl -O -L https://github.com/playframework/play1/releases/download/${PLAY_VERSION}/play-${PLAY_VERSION}.zip && \
     unzip -q play-${PLAY_VERSION}.zip && rm play-${PLAY_VERSION}.zip && cd play-${PLAY_VERSION}
 
 USER root
