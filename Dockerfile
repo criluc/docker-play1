@@ -44,7 +44,13 @@ RUN set -eu; \
         groupdel "$(getent group 1000 | cut -d: -f1)"; \
     fi; \
     groupadd -r play -g 1000; \
-    useradd -u 1000 -r -g play -m -d "$HOME" -s /sbin/nologin -c "Play user" play
+    useradd -u 1000 -r -g play -m -d "$HOME" -s /sbin/nologin -c "Play user" play; \
+    chmod 0755 "$HOME"
+
+# $HOME e' insieme la home dell'utente play e l'installazione di play usata
+# dalle immagini derivate, che spesso girano con un utente diverso: ubuntu
+# imposta HOME_MODE 0750 in /etc/login.defs e la renderebbe inaccessibile,
+# mentre sulla vecchia base debian restava a 0755 (UMASK 022).
 
 WORKDIR $HOME
 
