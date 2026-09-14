@@ -13,8 +13,24 @@ RUN ln -sf /usr/bin/python2.7 /usr/bin/python && rm *.deb && apt-get clean
 
 ENV HOME=/opt/play
 ENV PLAY_VERSION=1.5.3
-RUN groupadd -r play -g 1001 && \
-    useradd -u 1001 -r -g play -m -d $HOME -s /sbin/nologin -c "Play user" play
+# L'utente play deve avere uid/gid 1000 come nelle immagini precedenti: i
+# volumi montati dall'host in produzione appartengono a quell'uid numerico e
+# il matching sui bind mount avviene sull'uid, non sul nome. noble include
+# gia' un utente "ubuntu" con uid/gid 1000 che va quindi rimosso; e' un
+# utente di comodo per non girare da root, senza servizi ne' configurazioni
+# che dipendano da lui (possiede solo /home/ubuntu e i suoi tre dotfile). La
+# rimozione e' condizionale e per uid, non per nome, cosi' il file non si
+# rompe se la base cambia o smette di includerlo.
+RUN set -eu; \
+    if getent passwd 1000 >/dev/null; then \
+        existing="$(getent passwd 1000 | cut -d: -f1)"; \
+        userdel -r "$existing" || userdel "$existing"; \
+    fi; \
+    if getent group 1000 >/dev/null; then \
+        groupdel "$(getent group 1000 | cut -d: -f1)"; \
+    fi; \
+    groupadd -r play -g 1000; \
+    useradd -u 1000 -r -g play -m -d "$HOME" -s /sbin/nologin -c "Play user" play
 
 WORKDIR $HOME
 
