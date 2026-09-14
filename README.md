@@ -5,7 +5,7 @@ docker-play1
 
 Docker for Play 1
 
-  - play 1.5.3 version based on eclipse-temurin:11-jre-noble (Ubuntu 24.04).
+  - play 1.5.3 patched version based on eclipse-temurin:11-jre-noble (Ubuntu 24.04).
   - play 1.5.{2,3} version based on official openjdk:11-jre.  
   - play 1.5.{0,1,2,3} version based on official openjdk:8-jre.
   - play 1.4.{3,4} version based on official openjdk:8-jre.
@@ -22,10 +22,14 @@ Play 1.5.3 using openjdk 11
 
 $ docker run -it --rm criluc/play1:1.5.3-openjdk-11 bash
 
-Play 1.5.3 using eclipse-temurin 11 on Ubuntu 24.04
----------------------------------------------------
+Play 1.5.3 patched using eclipse-temurin 11 on Ubuntu 24.04
+-----------------------------------------------------------
 
-$ docker run -it --rm criluc/play1:1.5.3-temurin-11 bash
+$ docker run -it --rm criluc/play1:1.5.3-temurin-11-patched bash
+
+Il tag 1.5.3-temurin-11 e' un alias dello stesso digest. Come le altre
+immagini con suffisso patched, contiene il play-1.5.3.jar corretto per il
+problema di compatibilita' fra play ed envers.
 
 Le immagini openjdk sono deprecate e non piu' disponibili su Docker Hub, da
 qui il passaggio a eclipse-temurin. Gli script di play 1.5.x richiedono
