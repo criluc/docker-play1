@@ -23,7 +23,7 @@ COPY --from=python2 /etc/python2.7 /etc/python2.7
 RUN ln -sf /usr/bin/python2.7 /usr/bin/python
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends sudo ant wget unzip ca-certificates && \
+    apt-get install -y --no-install-recommends wget unzip ca-certificates && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ENV HOME=/opt/play
