@@ -1,0 +1,72 @@
+# Costruisce l'immagine di questo branch e la pubblica sul registry di GitHub
+# (ghcr.io). Sulle pull request l'immagine viene solo costruita e provata.
+name: Immagine docker
+
+on:
+  push:
+    branches:
+      - 1.5.3-eclipse-temurin-11-patched-2
+  pull_request:
+    branches:
+      - 1.5.3-eclipse-temurin-11-patched-2
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/play1
+  # Tag dell'immagine pubblicata da questo branch
+  IMAGE_TAG: 1.5.3-temurin-11-patched-2
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Costruzione dell'immagine
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: ${{ env.IMAGE }}:${{ env.IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verifica dell'immagine
+        run: |
+          set -eu
+          image="${IMAGE}:${IMAGE_TAG}"
+          docker run --rm "$image" play version
+          # il jar contiene le classi ricompilate con le patch e resta per java 8
+          docker run --rm "$image" sh -c \
+            'unzip -p /opt/play/play-*/framework/play-*.jar play/mvc/Http\$Cookie.class | grep -q defaultSameSite'
+          test "$(docker run --rm "$image" id -u)" = 1000
+
+      - name: Accesso a ghcr.io
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Oltre al tag del branch, che viene aggiornato a ogni push, pubblica un
+      # tag con il commit: le immagini derivate possono fissare quello o il digest.
+      - name: Pubblicazione
+        if: github.event_name == 'push'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ env.IMAGE_TAG }}
+            ${{ env.IMAGE }}:${{ env.IMAGE_TAG }}-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.description=Play 1.5.3 con patch (envers, SameSite) su eclipse-temurin 11
+          cache-from: type=gha

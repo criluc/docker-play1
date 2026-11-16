@@ -5,6 +5,7 @@ docker-play1
 
 Docker for Play 1
 
+  - play 1.5.3 patched version with SameSite cookie support, based on eclipse-temurin:11-jre-noble (Ubuntu 24.04).
   - play 1.5.3 patched version based on eclipse-temurin:11-jre-noble (Ubuntu 24.04).
   - play 1.5.{2,3} version based on official openjdk:11-jre.  
   - play 1.5.{0,1,2,3} version based on official openjdk:8-jre.
@@ -21,6 +22,39 @@ Play 1.5.3 using openjdk 11
 ---------------------------
 
 $ docker run -it --rm criluc/play1:1.5.3-openjdk-11 bash
+
+Play 1.5.3 patched (2) using eclipse-temurin 11 on Ubuntu 24.04
+---------------------------------------------------------------
+
+$ docker run -it --rm ghcr.io/criluc/play1:1.5.3-temurin-11-patched-2 bash
+
+Rispetto a 1.5.3-temurin-11-patched aggiunge al play-1.5.3.jar il supporto
+all'attributo SameSite dei cookie, che play 1.5.3 non prevede. Si attiva in
+application.conf:
+
+    application.session.sameSite=Lax
+
+I valori ammessi sono Lax, Strict e None (None richiede anche
+application.session.secure=true). Il valore vale per tutti i cookie emessi da
+play: sessione, flash, errori e quelli impostati con response.setCookie; un
+singolo cookie puo' indicarne uno diverso nel campo sameSite di Http.Cookie.
+Senza la proprieta' l'attributo non viene inviato, come nelle immagini
+precedenti. Un valore non valido impedisce l'avvio dell'applicazione.
+
+Il play-1.5.3.jar del repository e' quello ufficiale con la correzione per
+envers. Le modifiche successive sono nei file di patches/, come diff rispetto
+ai sorgenti della release 1.5.3: il Dockerfile li applica, ricompila le sole
+classi modificate e le sostituisce nel jar. Per usare lo stesso jar in una
+installazione locale di play:
+
+    docker run --rm ghcr.io/criluc/play1:1.5.3-temurin-11-patched-2 \
+      cat /opt/play/play-1.5.3/framework/play-1.5.3.jar > play-1.5.3.jar
+
+e copiarlo in framework/ al posto dell'originale.
+
+L'immagine e' costruita e pubblicata su ghcr.io da GitHub Actions a ogni push
+sul branch (.github/workflows/docker-publish.yml). Oltre al tag indicato sopra
+viene pubblicato il tag 1.5.3-temurin-11-patched-2-<commit>, che non cambia.
 
 Play 1.5.3 patched using eclipse-temurin 11 on Ubuntu 24.04
 -----------------------------------------------------------

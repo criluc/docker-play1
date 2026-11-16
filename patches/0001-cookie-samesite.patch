@@ -1,0 +1,147 @@
+diff -ruN a/src/play/mvc/Http.java b/src/play/mvc/Http.java
+--- a/src/play/mvc/Http.java	2026-11-16 16:09:39.586082974 +0100
++++ b/src/play/mvc/Http.java	2026-11-16 16:09:39.608419742 +0100
+@@ -163,6 +163,37 @@
+          * See http://www.owasp.org/index.php/HttpOnly
+          */
+         public boolean httpOnly = false;
++        /**
++         * SameSite attribute used for the cookies that don't specify one. Can be configured using the property
++         * 'application.session.sameSite' in application.conf (Lax, Strict or None). When null the attribute is not
++         * sent.
++         */
++        public static String defaultSameSite = null;
++        /**
++         * SameSite attribute of this cookie (Lax, Strict or None). When null {@link #defaultSameSite} is used.
++         */
++        public String sameSite;
++
++        /**
++         * Normalize the value of a SameSite attribute.
++         *
++         * @param value
++         *            the configured value, case insensitive
++         * @return Lax, Strict or None; null if the value is null or empty
++         * @throws IllegalArgumentException
++         *             if the value is not a valid SameSite attribute
++         */
++        public static String parseSameSite(String value) {
++            if (value == null || value.trim().isEmpty()) {
++                return null;
++            }
++            for (String valid : new String[] { "Lax", "Strict", "None" }) {
++                if (valid.equalsIgnoreCase(value.trim())) {
++                    return valid;
++                }
++            }
++            throw new IllegalArgumentException("Invalid SameSite value '" + value + "': use Lax, Strict or None");
++        }
+     }
+ 
+     /**
+diff -ruN a/src/play/Play.java b/src/play/Play.java
+--- a/src/play/Play.java	2026-11-16 16:09:39.585966243 +0100
++++ b/src/play/Play.java	2026-11-16 16:09:39.608592732 +0100
+@@ -26,6 +26,7 @@
+ import play.classloading.ApplicationClasses;
+ import play.classloading.ApplicationClassloader;
+ import play.deps.DependenciesManager;
++import play.exceptions.ConfigurationException;
+ import play.exceptions.PlayException;
+ import play.exceptions.RestartNeededException;
+ import play.exceptions.UnexpectedException;
+@@ -316,6 +317,21 @@
+             Logger.info("Using default cookie domain: " + Http.Cookie.defaultDomain);
+         }
+ 
++        // Default SameSite attribute of the cookies
++        try {
++            Http.Cookie.defaultSameSite = Http.Cookie.parseSameSite(configuration.getProperty("application.session.sameSite"));
++        } catch (IllegalArgumentException e) {
++            throw new ConfigurationException("application.session.sameSite: " + e.getMessage());
++        }
++        if (Http.Cookie.defaultSameSite != null) {
++            Logger.info("Using default cookie SameSite: " + Http.Cookie.defaultSameSite);
++            if ("None".equals(Http.Cookie.defaultSameSite)
++                    && !"true".equalsIgnoreCase(configuration.getProperty("application.session.secure", "false"))) {
++                Logger.warn("application.session.sameSite=None requires application.session.secure=true: "
++                        + "browsers reject SameSite=None cookies without the Secure attribute");
++            }
++        }
++
+         // Plugins
+         pluginCollection.loadPlugins();
+ 
+diff -ruN a/src/play/server/PlayHandler.java b/src/play/server/PlayHandler.java
+--- a/src/play/server/PlayHandler.java	2026-11-16 16:09:39.586206145 +0100
++++ b/src/play/server/PlayHandler.java	2026-11-16 16:09:39.608812494 +0100
+@@ -348,6 +348,30 @@
+         }
+     }
+ 
++    /**
++     * Encode a cookie as the value of a Set-Cookie header. Netty 3 doesn't know the SameSite attribute: it is
++     * appended to the encoded cookie.
++     *
++     * @param cookie
++     *            the cookie to send
++     * @return the value of the Set-Cookie header
++     */
++    protected static String encodeCookie(Http.Cookie cookie) {
++        Cookie c = new DefaultCookie(cookie.name, cookie.value);
++        c.setSecure(cookie.secure);
++        c.setPath(cookie.path);
++        if (cookie.domain != null) {
++            c.setDomain(cookie.domain);
++        }
++        if (cookie.maxAge != null) {
++            c.setMaxAge(cookie.maxAge);
++        }
++        c.setHttpOnly(cookie.httpOnly);
++        String encoded = ServerCookieEncoder.STRICT.encode(c);
++        String sameSite = Http.Cookie.parseSameSite(cookie.sameSite != null ? cookie.sameSite : Http.Cookie.defaultSameSite);
++        return sameSite == null ? encoded : encoded + "; SameSite=" + sameSite;
++    }
++
+     protected static void addToResponse(Response response, HttpResponse nettyResponse) {
+         Map<String, Http.Header> headers = response.headers;
+         for (Map.Entry<String, Http.Header> entry : headers.entrySet()) {
+@@ -362,17 +386,7 @@
+         Map<String, Http.Cookie> cookies = response.cookies;
+ 
+         for (Http.Cookie cookie : cookies.values()) {
+-            Cookie c = new DefaultCookie(cookie.name, cookie.value);
+-            c.setSecure(cookie.secure);
+-            c.setPath(cookie.path);
+-            if (cookie.domain != null) {
+-                c.setDomain(cookie.domain);
+-            }
+-            if (cookie.maxAge != null) {
+-                c.setMaxAge(cookie.maxAge);
+-            }
+-            c.setHttpOnly(cookie.httpOnly);
+-            nettyResponse.headers().add(SET_COOKIE, ServerCookieEncoder.STRICT.encode(c));
++            nettyResponse.headers().add(SET_COOKIE, encodeCookie(cookie));
+         }
+ 
+         if (!response.headers.containsKey(CACHE_CONTROL) && !response.headers.containsKey(EXPIRES)
+@@ -779,18 +793,7 @@
+ 
+                 Map<String, Http.Cookie> cookies = response.cookies;
+                 for (Http.Cookie cookie : cookies.values()) {
+-                    Cookie c = new DefaultCookie(cookie.name, cookie.value);
+-                    c.setSecure(cookie.secure);
+-                    c.setPath(cookie.path);
+-                    if (cookie.domain != null) {
+-                        c.setDomain(cookie.domain);
+-                    }
+-                    if (cookie.maxAge != null) {
+-                        c.setMaxAge(cookie.maxAge);
+-                    }
+-                    c.setHttpOnly(cookie.httpOnly);
+-
+-                    nettyResponse.headers().add(SET_COOKIE, ServerCookieEncoder.STRICT.encode(c));
++                    nettyResponse.headers().add(SET_COOKIE, encodeCookie(cookie));
+                 }
+ 
+             } catch (Exception exx) {

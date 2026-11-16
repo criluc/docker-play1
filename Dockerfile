@@ -10,6 +10,31 @@ FROM ubuntu:22.04 AS python2
 
 RUN apt-get update && apt-get install -y --no-install-recommends python2.7
 
+# Il play-1.5.3.jar del repository e' quello ufficiale con la correzione per la
+# compatibilita' fra play ed envers (play/db/jpa/HibernateInterceptor.class).
+# Le altre modifiche sono nei file di patches/, applicati ai sorgenti della
+# release ufficiale: qui si ricompilano solo le classi modificate e si
+# sostituiscono nel jar. --release 8 come il jar ufficiale (class file 52).
+FROM eclipse-temurin:11-jdk-noble AS playjar
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wget unzip patch ca-certificates
+
+ENV PLAY_VERSION=1.5.3
+WORKDIR /build
+RUN wget -q https://github.com/playframework/play1/releases/download/${PLAY_VERSION}/play-${PLAY_VERSION}.zip && \
+    unzip -q play-${PLAY_VERSION}.zip "play-${PLAY_VERSION}/framework/src/*" "play-${PLAY_VERSION}/framework/lib/*"
+COPY play-${PLAY_VERSION}.jar /build/
+COPY patches/ /build/patches/
+RUN set -eu; \
+    cd play-${PLAY_VERSION}/framework; \
+    for p in /build/patches/*.patch; do patch -p1 --fuzz=0 < "$p"; done; \
+    changed="$(cat /build/patches/*.patch | sed -n 's|^+++ b/\(src/[^[:space:]]*\.java\).*|\1|p' | sort -u)"; \
+    mkdir /build/classes; \
+    javac --release 8 -nowarn -encoding UTF-8 -cp "/build/play-${PLAY_VERSION}.jar:lib/*" \
+        -d /build/classes $changed; \
+    jar uf /build/play-${PLAY_VERSION}.jar -C /build/classes .
+
 FROM eclipse-temurin:11-jre-noble
 
 LABEL maintainer="Cristian Lucchesi <cristian.lucchesi@gmail.com>"
@@ -62,6 +87,6 @@ RUN wget -q https://github.com/playframework/play1/releases/download/${PLAY_VERS
 USER root
 RUN ln -sf $HOME/play-${PLAY_VERSION}/play /usr/local/bin
 USER play
-COPY play-${PLAY_VERSION}.jar $HOME/play-${PLAY_VERSION}/framework/
+COPY --from=playjar /build/play-${PLAY_VERSION}.jar $HOME/play-${PLAY_VERSION}/framework/
 
 EXPOSE 9000
